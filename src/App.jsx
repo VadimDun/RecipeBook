@@ -1,27 +1,31 @@
 import { useState } from 'react'
 import './App.css'
+import { findRecipesByIngredients } from './mealApi'
 
 const ingredients = [
-  { name: 'Курица', value: 'chicken' },
-  { name: 'Говядина', value: 'beef' },
-  { name: 'Рыба', value: 'fish' },
-  { name: 'Яйца', value: 'eggs' },
-  { name: 'Помидоры', value: 'tomato' },
-  { name: 'Картофель', value: 'potato' },
-  { name: 'Лук', value: 'onion' },
-  { name: 'Чеснок', value: 'garlic' },
-  { name: 'Сыр', value: 'cheese' },
-  { name: 'Молоко', value: 'milk' },
-  { name: 'Рис', value: 'rice' },
-  { name: 'Макароны', value: 'pasta' },
-  { name: 'Морковь', value: 'carrot' },
-  { name: 'Перец', value: 'pepper' },
-  { name: 'Грибы', value: 'mushrooms' },
+  { name: 'Курица', value: 'chicken', apiName: 'Chicken' },
+  { name: 'Говядина', value: 'beef', apiName: 'Beef' },
+  { name: 'Рыба', value: 'fish', apiName: 'Salmon' },
+  { name: 'Яйца', value: 'eggs', apiName: 'Egg' },
+  { name: 'Помидоры', value: 'tomato', apiName: 'Tomato' },
+  { name: 'Картофель', value: 'potato', apiName: 'Potatoes' },
+  { name: 'Лук', value: 'onion', apiName: 'Onion' },
+  { name: 'Чеснок', value: 'garlic', apiName: 'Garlic' },
+  { name: 'Сыр', value: 'cheese', apiName: 'Cheese' },
+  { name: 'Молоко', value: 'milk', apiName: 'Milk' },
+  { name: 'Рис', value: 'rice', apiName: 'Rice' },
+  { name: 'Макароны', value: 'pasta', apiName: 'Spaghetti' },
+  { name: 'Морковь', value: 'carrot', apiName: 'Carrot' },
+  { name: 'Перец', value: 'pepper', apiName: 'Pepper' },
+  { name: 'Грибы', value: 'mushrooms', apiName: 'Mushrooms' },
 ]
 
 function App() {
   const [selectedIngredients, setSelectedIngredients] = useState([])
+  const [recipes, setRecipes] = useState([])
   const [message, setMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   function toggleIngredient(ingredient) {
     if (selectedIngredients.includes(ingredient)) {
@@ -30,16 +34,41 @@ function App() {
       setSelectedIngredients([...selectedIngredients, ingredient])
     }
 
+    setRecipes([])
     setMessage('')
+    setError('')
   }
 
-  function handleSearch() {
-    setMessage('Search soon.')
+  async function handleSearch() {
+    const selected = ingredients.filter((ingredient) =>
+      selectedIngredients.includes(ingredient.value)
+    )
+
+    setIsLoading(true)
+    setRecipes([])
+    setMessage('')
+    setError('')
+
+    try {
+      const result = await findRecipesByIngredients(selected)
+
+      setRecipes(result)
+
+      if (result.length === 0) {
+        setMessage('Рецепты не найдены. Попробуй выбрать другие ингредиенты.')
+      }
+    } catch {
+      setError('Не удалось загрузить рецепты')
+    }
+
+    setIsLoading(false)
   }
 
   function clearIngredients() {
     setSelectedIngredients([])
+    setRecipes([])
     setMessage('')
+    setError('')
   }
 
   return (
@@ -64,6 +93,7 @@ function App() {
               <p className="eyebrow">ШАГ 1</p>
               <h2>Выбери ингредиенты</h2>
             </div>
+
             <span className="selected-count">
               Выбрано: <strong>{selectedIngredients.length}</strong>
             </span>
@@ -99,27 +129,76 @@ function App() {
             >
               Очистить выбор
             </button>
+
             <button
               className="search-button"
               type="button"
               onClick={handleSearch}
-              disabled={selectedIngredients.length === 0}
+              disabled={selectedIngredients.length === 0 || isLoading}
             >
-              Подобрать рецепты <span>→</span>
+              {isLoading ? 'Поиск...' : 'Подобрать рецепты'} <span>→</span>
             </button>
           </div>
-
-          {message && <p className="message" role="status">{message}</p>}
         </section>
 
-        <section className="next-section">
-          <div>
-            <h2>Рецепты</h2>
-          </div>
+        <section className="recipes-section">
+          <h2>Рецепты</h2>
+
+          {isLoading && (
+            <p className="message">Ищем подходящие рецепты...</p>
+          )}
+
+          {message && <p className="message">{message}</p>}
+
+          {error && <p className="message error">{error}</p>}
+
+          {!isLoading && recipes.length > 0 && (
+            <div className="recipe-grid">
+              {recipes.map((recipe) => (
+                <article className="recipe-card" key={recipe.idMeal}>
+                  <img src={recipe.strMealThumb} alt={recipe.strMeal} />
+
+                  <div className="recipe-card-content">
+                    <h3>{recipe.strMeal}</h3>
+
+                    <div className="recipe-match">
+                      <strong>{recipe.matchPercent}% совпадение</strong>
+                      <span>
+                        {recipe.matchedCount} из {recipe.totalIngredients} ингредиентов
+                      </span>
+                    </div>
+
+                    <div className="match-bar">
+                      <div
+                        className="match-bar-fill"
+                        style={{ width: `${recipe.matchPercent}%` }}
+                      />
+                    </div>
+
+                    <p className="missing-ingredients">
+                      <strong>Не хватает: </strong>
+                      {recipe.missingIngredients.length > 0
+                        ? recipe.missingIngredients.slice(0, 3).join(', ')
+                        : 'Все ингредиенты есть'}
+                      {recipe.missingIngredients.length > 3 && ' и другие'}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {!isLoading && recipes.length === 0 && !message && !error && (
+            <p className="empty-results">
+              Выбери ингредиенты и нажми «Подобрать рецепты».
+            </p>
+          )}
         </section>
       </main>
 
-      <footer className="footer">RecipeBook · Простые идеи для домашней кухни</footer>
+      <footer className="footer">
+        RecipeBook · Простые идеи для домашней кухни
+      </footer>
     </div>
   )
 }
