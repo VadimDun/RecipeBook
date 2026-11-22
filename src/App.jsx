@@ -20,12 +20,31 @@ const ingredients = [
   { name: 'Грибы', value: 'mushrooms', apiName: 'Mushrooms' },
 ]
 
+function getRecipeIngredients(recipe) {
+  const result = []
+
+  for (let i = 1; i <= 20; i++) {
+    const name = recipe[`strIngredient${i}`]
+    const measure = recipe[`strMeasure${i}`]
+
+    if (name && name.trim() !== '') {
+      result.push({
+        name: name,
+        measure: measure
+      })
+    }
+  }
+
+  return result
+}
+
 function App() {
   const [selectedIngredients, setSelectedIngredients] = useState([])
   const [recipes, setRecipes] = useState([])
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedRecipe, setSelectedRecipe] = useState(null)
 
   function toggleIngredient(ingredient) {
     if (selectedIngredients.includes(ingredient)) {
@@ -182,6 +201,16 @@ function App() {
                         : 'Все ингредиенты есть'}
                       {recipe.missingIngredients.length > 3 && ' и другие'}
                     </p>
+
+                    <div className="recipe-actions">
+                      <button
+                        className="details-button"
+                        type="button"
+                        onClick={() => setSelectedRecipe(recipe)}
+                      >
+                        Подробнее
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -194,6 +223,67 @@ function App() {
             </p>
           )}
         </section>
+
+        {selectedRecipe && (
+          <div className="modal-overlay" onClick={() => setSelectedRecipe(null)}>
+            <div className="recipe-modal" role="dialog" aria-modal="true" 
+            aria-labelledby="recipe-title" onClick={(event) => event.stopPropagation()}>
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => setSelectedRecipe(null)}
+                aria-label="Закрыть"
+              >
+                ×
+              </button>
+
+              <img
+                className="recipe-modal-image"
+                src={selectedRecipe.strMealThumb}
+                alt={selectedRecipe.strMeal}
+              />
+
+              <div className="recipe-modal-content">
+                <p className="eyebrow">
+                  {selectedRecipe.strArea} · {selectedRecipe.strCategory}
+                </p>
+
+                <h2 id="recipe-title">{selectedRecipe.strMeal}</h2>
+
+                <h3>Ингредиенты</h3>
+
+                <ul className="recipe-ingredients">
+                  {getRecipeIngredients(selectedRecipe).map((ingredient, index) => (
+                    <li key={index}>
+                      <span>{ingredient.name}</span>
+                      <span>{ingredient.measure}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <h3>Приготовление</h3>
+
+                <p className="recipe-instructions">
+                  {selectedRecipe.strInstructions || 'Инструкция отсутствует.'}
+                </p>
+
+                <div className="recipe-links">
+                  {selectedRecipe.strSource && (
+                    <a href={selectedRecipe.strSource} target="_blank" rel="noreferrer">
+                      Источник рецепта
+                    </a>
+                  )}
+
+                  {selectedRecipe.strYoutube && (
+                    <a href={selectedRecipe.strYoutube} target="_blank" rel="noreferrer">
+                      Видео приготовления
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <footer className="footer">
