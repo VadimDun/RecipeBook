@@ -14,9 +14,7 @@ function ingredientMatches(recipeIngredient, selectedIngredient) {
 export async function findRecipesByIngredients(selectedIngredients) {
     const mealsByIngredient = await Promise.all(
         selectedIngredients.map(async (ingredient) => {
-            const apiName = ingredient.apiName.toLowerCase().replace(/ /g, '_')
-
-            const response = await fetch(`${API_URL}/filter.php?i=${apiName}`)
+            const response = await fetch(`${API_URL}/filter.php?i=${ingredient.apiName}`)
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке рецептов')
@@ -64,8 +62,8 @@ export async function findRecipesByIngredients(selectedIngredients) {
                 }
             }
 
-            const matchedIngredients = selectedIngredients.filter((selected) =>
-                recipeIngredients.some((ingredient) =>
+            const matchedIngredients = recipeIngredients.filter((ingredient) =>
+                selectedIngredients.some((selected) =>
                     ingredientMatches(ingredient, selected.apiName)
                 )
             )

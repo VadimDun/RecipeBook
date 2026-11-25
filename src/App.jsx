@@ -3,21 +3,21 @@ import './App.css'
 import { findRecipesByIngredients } from './mealApi'
 
 const ingredients = [
-  { name: 'Курица', value: 'chicken', apiName: 'Chicken' },
-  { name: 'Говядина', value: 'beef', apiName: 'Beef' },
-  { name: 'Рыба', value: 'fish', apiName: 'Salmon' },
-  { name: 'Яйца', value: 'eggs', apiName: 'Egg' },
-  { name: 'Помидоры', value: 'tomato', apiName: 'Tomato' },
-  { name: 'Картофель', value: 'potato', apiName: 'Potatoes' },
-  { name: 'Лук', value: 'onion', apiName: 'Onion' },
-  { name: 'Чеснок', value: 'garlic', apiName: 'Garlic' },
-  { name: 'Сыр', value: 'cheese', apiName: 'Cheese' },
-  { name: 'Молоко', value: 'milk', apiName: 'Milk' },
-  { name: 'Рис', value: 'rice', apiName: 'Rice' },
-  { name: 'Макароны', value: 'pasta', apiName: 'Spaghetti' },
-  { name: 'Морковь', value: 'carrot', apiName: 'Carrot' },
-  { name: 'Перец', value: 'pepper', apiName: 'Pepper' },
-  { name: 'Грибы', value: 'mushrooms', apiName: 'Mushrooms' },
+  { name: 'Курица', apiName: 'chicken' },
+  { name: 'Говядина', apiName: 'beef' },
+  { name: 'Рыба', apiName: 'salmon' },
+  { name: 'Яйца', apiName: 'egg' },
+  { name: 'Помидоры', apiName: 'tomato' },
+  { name: 'Картофель', apiName: 'potatoes' },
+  { name: 'Лук', apiName: 'onion' },
+  { name: 'Чеснок', apiName: 'garlic' },
+  { name: 'Сыр', apiName: 'cheese' },
+  { name: 'Молоко', apiName: 'milk' },
+  { name: 'Рис', apiName: 'rice' },
+  { name: 'Макароны', apiName: 'spaghetti' },
+  { name: 'Морковь', apiName: 'carrot' },
+  { name: 'Перец', apiName: 'pepper' },
+  { name: 'Грибы', apiName: 'mushrooms' },
 ]
 
 function getRecipeIngredients(recipe) {
@@ -60,12 +60,11 @@ function App() {
 
   async function handleSearch() {
     const selected = ingredients.filter((ingredient) =>
-      selectedIngredients.includes(ingredient.value)
+      selectedIngredients.includes(ingredient.apiName)
     )
 
     setIsLoading(true)
     setRecipes([])
-    setMessage('')
     setError('')
 
     try {
@@ -94,7 +93,6 @@ function App() {
     <div className="page">
       <header className="header">
         <a className="logo" href="#top">
-          <span className="logo-icon">R</span>
           <span>RecipeBook</span>
         </a>
       </header>
@@ -109,7 +107,6 @@ function App() {
         <section className="ingredient-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">ШАГ 1</p>
               <h2>Выбери ингредиенты</h2>
             </div>
 
@@ -122,17 +119,16 @@ function App() {
             {ingredients.map((ingredient) => (
               <button
                 className={
-                  selectedIngredients.includes(ingredient.value)
+                  selectedIngredients.includes(ingredient.apiName)
                     ? 'ingredient selected'
                     : 'ingredient'
                 }
-                key={ingredient.value}
+                key={ingredient.apiName}
                 type="button"
-                onClick={() => toggleIngredient(ingredient.value)}
-                aria-pressed={selectedIngredients.includes(ingredient.value)}
+                onClick={() => toggleIngredient(ingredient.apiName)}
               >
                 <span className="ingredient-check">
-                  {selectedIngredients.includes(ingredient.value) ? '✓' : '+'}
+                  {selectedIngredients.includes(ingredient.apiName) ? '✓' : '+'}
                 </span>
                 {ingredient.name}
               </button>
@@ -286,9 +282,6 @@ function App() {
         )}
       </main>
 
-      <footer className="footer">
-        RecipeBook · Простые идеи для домашней кухни
-      </footer>
     </div>
   )
 }
